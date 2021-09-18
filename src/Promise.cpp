@@ -2,14 +2,14 @@
 
 namespace Promise
 {
-        PromiseBase::PromiseBase(std::function<void(Handle , Handle)> p) : _state(State::Init){
+        PromiseBase::PromiseBase(std::function<void(Handle& , Handle&)> p) : _state(State::Init), _thenHandle([this](std::any data){
+            internalThen(data);
+        }){
             //p(_then,_catch);
-            p([this](std::any data){
-                internalThen(data);   
-            }
-            ,[this](std::any data){
-                internalCatch();   
-            });
+
+            //_then.push_back(thenHandle);
+            p(_thenHandle
+            ,_thenHandle);
         }
 
         void PromiseBase::internalThen(std::any data){
@@ -18,7 +18,7 @@ namespace Promise
 
             for(const auto& callback: _then)
             {
-                callback(_data);
+                (callback)(_data);
             }
             
         }
@@ -35,11 +35,22 @@ namespace Promise
         PromiseBase& PromiseBase::then(Handle callback){
             _then.push_back(callback);
 
+            if(State::Finished == _state)
+            {
+                callback(_data);
+            }
+
             return *this;
         }
 
         PromiseBase& PromiseBase::error(CatchHandle callback){
             _catch.push_back(callback);
+
+            if(State::Failed == _state)
+            {
+                callback();
+            }
+
             return *this;
         }
 }

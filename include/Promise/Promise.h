@@ -19,24 +19,24 @@ namespace Promise
             Failed
         };
 
-        PromiseBase(std::function<void(Handle , Handle)> p);
+        PromiseBase(std::function<void(Handle& , Handle&)> p);
+
+        PromiseBase& then(Handle callback);
+
+        PromiseBase& error(CatchHandle callback);
 
         private:
         void internalThen(std::any data);
 
         void internalCatch();
 
-        PromiseBase& then(Handle callback);
-
-        PromiseBase& error(CatchHandle callback);
-
-
-
         private:
-        State _state;
+        State _state = State::Init;
         std::any _data;
         std::vector<Handle> _then;
         std::vector<CatchHandle> _catch;
+
+        Handle _thenHandle;
         
     };
 
